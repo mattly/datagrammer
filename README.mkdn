@@ -1,0 +1,17 @@
+# Datagrammer
+
+by Matthew Lyon <matt@flowerpowered.com>
+
+## DESCRIPTION:
+
+Datagrammer is a set of convenience wrappers around UDPSocket for sending and receiving packets over UDP.
+
+## FEATURES
+
+- Packet decoding
+
+Nothing else has been implemented yet.
+
+## REQUIREMENTS
+
+* Rspec, if you wish to run the spec suite
