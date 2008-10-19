@@ -20,17 +20,23 @@ class Datagrammer
     
     def self.encode(message=[])
       message = [message].flatten
-      argtypes = []
-      lead = message.shift
-      arguments = message.inject("") do |packet, argument|
-        packet << if argument.kind_of?(String)
-          pad(argument)
-        elsif argument.kind_of?(Integer)
-          [argument].pack('N')
-        elsif argument.kind_of?(Float)
-          [argument].pack('g')
+      string = pad(message.shift)
+      string += ","
+      string += message.collect do |argument|
+        case argument
+        when String; 's' 
+        when Integer; 'i'
+        when Float; 'f'
         end
-      end
+      end.join
+      string = pad(string)
+      string += message.collect do |argument|
+        case argument
+        when String; pad(argument)
+        when Integer; [argument].pack('N')
+        when Float; [argument].pack('g')
+        end
+      end.join
     end
     
     def self.pad(string='')

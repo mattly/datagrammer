@@ -29,7 +29,16 @@ describe Datagrammer::Packet do
   end
   
   describe "encode" do
-    
+    [ [['hello'], "hello\000\000\000,\000\000\000"],
+      [['hello','world'], "hello\000\000\000,s\000\000world\000\000\000"],
+      [['hello', 'world', 1, 2.0], "hello\000\000\000,sif\000\000\000\000world\000\000\000\000\000\000\001@\000\000\000"]
+    ].each do |message, expected|
+      describe "message: #{message.join(', ')}" do
+        it "properly formats" do
+          Datagrammer::Packet.encode(message).should == expected
+        end
+      end
+    end
   end
   
   describe "pad" do
