@@ -31,4 +31,14 @@ describe Datagrammer::Packet do
   describe "encode" do
     
   end
+  
+  describe "pad" do
+    it "fills out to the nearest word length" do
+      Datagrammer::Packet.pad("h").should == "h\000\000\000"
+    end
+    
+    it "appends nulls if string is already at wordlength" do
+      Datagrammer::Packet.pad("word").should == "word\000\000\000\000"
+    end
+  end
 end
