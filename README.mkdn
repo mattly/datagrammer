@@ -4,13 +4,34 @@ by Matthew Lyon <matt@flowerpowered.com>
 
 ## DESCRIPTION:
 
-Datagrammer is a set of convenience wrappers around UDPSocket for sending and receiving packets over UDP.
+Datagrammer helps take the pain out of UDP by mitigating some of the packet
+encoding/decoding stuff, as well as providing a non-blocking listening thread.
 
 ## FEATURES
 
-- Packet decoding
+- Encodes/Decodes OSC-style packets (where a main 'address' is given along 
+  with typed arguments)
+- Listens for messages in its own thread, performs a callback when a 
+  message is received.
+- Has a default "speaking" address / port for talkback. the IP of the sender
+  of a received packet is also made available to the callback.
+  
+# SYNOPSIS
 
-Nothing else has been implemented yet.
+    require 'datagrammer'
+    
+    server = Datagrammer.new(5000)
+    server.listen do |serv, msg, sender| 
+      serv.speak("thanks for your message #{sender}, I received: #{msg.join(', ')}")
+    end
+    
+    # set to speak at server's default speak destination
+    client = Datagrammer.new(5001, :speak_port => 5000) 
+    client.listen {|serv, msg| puts "rec'd #{msg}"}
+    
+    client.speak(%w(hey joe))
+    sleep 0.1
+    # rec'd thanks for your message 127.0.0.1, I received: hey, joe
 
 ## REQUIREMENTS
 
