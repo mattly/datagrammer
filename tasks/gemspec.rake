@@ -1,9 +1,9 @@
 require "rake/gempackagetask"
 spec = Gem::Specification.new do |s|
   s.name         = 'datagrammer'
-  s.version      = '0.0.1'
-  s.summary      = "UDP made easier"
-  s.description  = "Manages sending and receiving of UDP packets"
+  s.version      = '0.1'
+  s.summary      = "UDP without the pain"
+  s.description  = "Sends and receives UDP packets in an OSC-compatable encoded format."
 
   s.author       = "Matthew Lyon"
   s.email        = "matt@flowerpowered.com"
