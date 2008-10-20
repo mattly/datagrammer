@@ -15,7 +15,7 @@ class Datagrammer
         end
         memo
       end
-      [message, arguments]
+      arguments.unshift(message)
     end
     
     def self.encode(message=[])
