@@ -3,6 +3,7 @@ require 'socket'
 $:.unshift File.dirname(__FILE__)
 require 'datagrammer/packet'
 require 'datagrammer/packet_scanner'
+require 'datagrammer/generic_handler'
 
 # A Datagrammer object will listen on a given address and port for messages and
 # will decode the data (it's assumed to be in a OSC-style format) and perform
