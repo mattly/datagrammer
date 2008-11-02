@@ -16,8 +16,9 @@ require 'datagrammer/generic_handler'
 #   # OSC-style packet (f.e. from Max/MSP's udpsender) will be echoed back on port
 #   # 5001 in the string format given in the block.
 class Datagrammer
+  attr_accessor :thread, :socket, :speak_address, :speak_port
   
-  # creates a new Datagrammer object bound to the specified port. The following
+  # Creates a new Datagrammer object bound to the specified port. The following
   # options are available:
   # * (({:address})): IP to listen on. defaults to "0.0.0.0"
   # * (({:speak_address})): default IP to send to. defaults to "0.0.0.0"
@@ -25,18 +26,20 @@ class Datagrammer
   def initialize(port, opts={})
     @port          = port
     @address       = opts[:address] || "0.0.0.0"
-    @speak_address = opts[:speak_address] || "0.0.0.0"
+    @speak_address = opts[:speak_address] || @address
     @speak_port    = opts[:speak_port] || port + 1
     @socket        = UDPSocket.new
     @socket.bind(@address, @port)
   end
   
+  # Sets the default speak destination
   def speak_destination=(addr, port)
     @speak_address, @speak_port = addr, port
   end
   
-  attr_accessor :thread, :socket, :speak_address, :speak_port
-  
+  # Starts the thread to listen on the selected port. A block is required, that will get
+  # three arguments: the datagrammer object itself, the packet data (as an array), and the 
+  # address of the sender.
   def listen(&block)
     @thread = Thread.start do
       loop do
@@ -47,6 +50,7 @@ class Datagrammer
     end
   end
   
+  # Encodes and sends a packet to the specified address and port
   def speak(message, addr=@speak_address, port=@speak_port)
     @socket.send(Packet.encode([message]), 0, addr, port)
   end
