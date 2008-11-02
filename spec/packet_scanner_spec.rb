@@ -1,10 +1,10 @@
 require File.dirname(__FILE__) + '/spec_helper.rb'
 
-describe StringScanner do
+describe PacketScanner do
   
   describe "skip_buffer" do
     it "sets the position to the next multiple of four" do
-      s = StringScanner.new('more than four bytes')
+      s = PacketScanner.new('more than four bytes')
       [[4,8], [6,8], [1,4]].each do |pos, expected|
         s.pos = pos
         s.skip_buffer
@@ -16,7 +16,7 @@ describe StringScanner do
   describe "scan_string" do
     
     before do
-      @s = StringScanner.new("this is a string!\000\000\000end.")
+      @s = PacketScanner.new("this is a string!\000\000\000end.")
       @string = @s.scan_string
     end
     
@@ -33,7 +33,7 @@ describe StringScanner do
     [[1,"\000\000\000\001"], [-10, "\377\377\377\366"], [2147483647, "\177\377\377\377"]].each do |integer, encoded|
       describe "decdoing #{integer}" do
         before do
-          @s = StringScanner.new(encoded)
+          @s = PacketScanner.new(encoded)
           @int = @s.scan_integer
         end
         
@@ -52,7 +52,7 @@ describe StringScanner do
     [[1.0, "?\200\000\000"], [3.141593, "@I\017\333"], [-1.618034, "\277\317\e\275"]].each do |float, encoded|
       describe "decoding #{float}" do
         before do
-          @s = StringScanner.new(encoded)
+          @s = PacketScanner.new(encoded)
           @float = @s.scan_float
         end
         
