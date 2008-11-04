@@ -16,21 +16,75 @@ describe Datagrammer do
     s
   end
   
-  it "should send an encoded packet out to its speaking port" do
-    Thread.start { sleep 0.1; @serv.speak("hi") }
-    sock = setup_socket(10001)
-    IO.select [sock]
-    data, info = sock.recvfrom(1024)
-    sock.close
-    data.should == "hi\000\000,\000\000\000"
+  describe "sending messages" do
+    it "should send an encoded packet out to its speaking port" do
+      Thread.start { sleep 0.1; @serv.speak("hi") }
+      sock = setup_socket(10001)
+      IO.select [sock]
+      data, info = sock.recvfrom(1024)
+      sock.close
+      data.should == "hi\000\000,\000\000\000"
+    end
   end
   
-  it "should receive encoded packets while listening and feed it to the callback" do
-    @serv.listen {|dg, msg| @foo = msg }
-    s = UDPSocket.new
-    s.send("hi\000\000,\000\000\000", 0, '0.0.0.0', 10000)
-    sleep 0.1
-    @foo.should == ['hi']
+  describe "handling received messages" do
+    
+    before do
+      @bar = 'baz'
+      @foo = lambda {|args| @bar = "foo: #{args.join(', ')}" }
+      @serv.register_rule('foo', @foo)
+    end
+    
+    it "should receive encoded packets while listening and feed it to the handler" do
+      @serv.should_receive(:handle).with('foo', ['hi'])
+      s = UDPSocket.new
+      s.send("foo\000,s\000\000hi\000\000", 0, '0.0.0.0', 10000)
+      sleep 0.1
+    end
+    
+    it "registers handlers" do
+      @serv.rules['foo'].should == @foo
+    end
+
+    it "calls the handler for a given address" do
+      @serv.handle('foo', %w(bar baz)).should == ["foo: bar, baz"]
+    end
+
+    describe "regex handlers" do
+      before do
+        @i = Hash.new {|hash, key| hash[key] = [] }
+        @serv.register_rule(/^\/reg\/(.*)$/, lambda {|a| @i[a.shift] += a})
+      end
+
+      it "accepts regexes as hanlder keys and calls their values when matched" do
+        @serv.handle('/reg/foo', %w(bar baz))
+        @i.should == {'foo' => %w(bar baz)}
+      end
+
+      it "handles values for ALL regexes that match given string" do
+        @serv.register_rule(/.*/, lambda {|a| @i['default'] += a })
+        @serv.handle('/reg/foo', %w(bar baz))
+        @i.should == {'foo' => %w(bar baz), 'default' => %w(/reg/foo bar baz)}
+      end
+
+      it "does not use regexes if exact match from string" do
+        @serv.register_rule('/reg/foo', lambda {|a| @i['exact'] += a })
+        @serv.handle('/reg/foo', %w(bar baz))
+        @i.should == {'exact' => %w(bar baz)}
+      end
+    end
+
+    describe "no handler found" do
+      it "uses 'default' if exists" do
+        default = lambda { 'default' }
+        @serv.register_rule('\default', default)
+        @serv.handle('/non-existant').should == ['default']
+      end
+
+      it "does nothing if no default handler" do
+        @serv.handle('/non-existant').should == []
+      end
+    end
   end
   
 end
