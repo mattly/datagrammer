@@ -12,10 +12,11 @@ class Datagrammer
       message = scanner.scan_string
       argument_types = scanner.scan_string.sub(/^,/,'').split('')
       arguments = argument_types.collect do |type|
-        { 's' => lambda { scanner.scan_string },
-          'i' => lambda { scanner.scan_integer },
-          'f' => lambda { scanner.scan_float }
-        }[type].call()
+        case type
+        when 's'; scanner.scan_string
+        when 'i'; scanner.scan_integer
+        when 'f'; scanner.scan_float
+        end
       end
       arguments.unshift(message)
     end
