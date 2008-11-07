@@ -15,7 +15,7 @@ require 'datagrammer/packet_scanner'
 #   # OSC-style packet (f.e. from Max/MSP's udpsender) will be echoed back on port
 #   # 5001 in the string format given in the block.
 class Datagrammer
-  attr_accessor :thread, :socket, :speak_address, :speak_port, :rules
+  attr_accessor :thread, :socket, :speak_address, :speak_port, :string_rules, :regex_rules
   
   # Creates a new Datagrammer object bound to the specified port. The following
   # options are available:
@@ -32,7 +32,9 @@ class Datagrammer
     @address       = opts[:address] || "0.0.0.0"
     @speak_address = opts[:speak_address] || @address
     @speak_port    = opts[:speak_port] || port + 1
-    @rules         = opts[:rules] || {}
+    @string_rules, @regex_rules = {}, {}
+    @default_rule  = nil
+    (opts[:rules]||{}).each_pair {|key, value| register_rule(key, value) }
     @socket        = UDPSocket.new
     @socket.bind(@address, @port)
     listen unless opts.has_key?(:listen) && ! opts[:listen]
@@ -51,27 +53,22 @@ class Datagrammer
   # * If there is no match yet and a rule key called '\default' exists, that rule will be used.
   # * If no match has been made at this point, nothing will happen, the data will be ignored.
   def register_rule(rule, block)
-    @rules[rule] = block
+    @string_rules[rule] = block if rule.kind_of?(String)
+    @regex_rules[rule]  = block if rule.kind_of?(Regexp)
+    @default_rule       = block if rule == :default
   end
   
   # runs the first part of the incoming message against the registered rules.
   def handle(address, arguments=[])
-    list = if @rules.has_key?(address)
-      [[@rules[address], arguments]]
-    else
-      matches = @rules.select {|k,v| k.kind_of?(Regexp) && address =~ k }
-      if ! matches.empty?
-        matches.collect do |regex, p| 
-          msg = [address.scan(regex), arguments].flatten
-          msg.delete('')
-          [p, msg]
-        end
-      elsif @rules.has_key?('\default')
-        [[@rules['\default'], arguments]]
-      else
-        []
-      end
+    list = []
+    list << [@string_rules[address], arguments]
+    list += @regex_rules.select {|key, value| address =~ key }.map do |regex, action|
+      msg = [address.scan(regex), arguments].flatten
+      msg.delete('')
+      [action, msg]
     end
+    list.delete_if {|callback, args| callback.nil? }
+    list << [@default_rule, arguments] if list.empty? && @default_rule
     list.map {|callback, args| callback.call(args) }
   end
   
@@ -98,5 +95,7 @@ class Datagrammer
   def speak(message, addr=@speak_address, port=@speak_port)
     @socket.send(Packet.encode([message]), 0, addr, port)
   end
+  
+  private
   
 end

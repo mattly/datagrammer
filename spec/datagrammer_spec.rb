@@ -42,15 +42,11 @@ describe Datagrammer do
       sleep 0.1
     end
     
-    it "registers handlers" do
-      @serv.rules['foo'].should == @foo
-    end
-
     it "calls the handler for a given address" do
       @serv.handle('foo', %w(bar baz)).should == ["foo: bar, baz"]
     end
 
-    describe "regex handlers" do
+    describe "with regex handlers" do
       before do
         @i = Hash.new {|hash, key| hash[key] = [] }
         @serv.register_rule(/^\/reg\/(.*)$/, lambda {|a| @i[a.shift] += a})
@@ -67,18 +63,18 @@ describe Datagrammer do
         @i.should == {'foo' => %w(bar baz), 'default' => %w(/reg/foo bar baz)}
       end
 
-      it "does not use regexes if exact match from string" do
+      it "uses regexes if exact match from string" do
         @serv.register_rule('/reg/foo', lambda {|a| @i['exact'] += a })
         @serv.handle('/reg/foo', %w(bar baz))
-        @i.should == {'exact' => %w(bar baz)}
+        @i.should == {'exact' => %w(bar baz), 'foo' => %w(bar baz)}
       end
     end
 
-    describe "no handler found" do
+    describe "with no handler found" do
       it "uses 'default' if exists" do
-        default = lambda { 'default' }
-        @serv.register_rule('\default', default)
-        @serv.handle('/non-existant').should == ['default']
+        @serv.register_rule(:default, lambda {@i = 'default'})
+        @serv.handle('/non-existant')
+        @i.should == 'default'
       end
 
       it "does nothing if no default handler" do
