@@ -21,7 +21,7 @@ encoding/decoding stuff, as well as providing a non-blocking listening thread.
     require 'datagrammer'
     
     server = Datagrammer.new(5000)
-    server.register_rule /.*/, lambda {|msg| serv.speak("received: #{msg.join(',')}") }
+    server.register_rule /.*/, lambda {|msg| server.speak("received: #{msg.join(',')}") }
     
     # set to speak at server's default speak destination
     client = Datagrammer.new(5001, :speak_port => 5000)
@@ -29,7 +29,7 @@ encoding/decoding stuff, as well as providing a non-blocking listening thread.
 
     client.speak(%w(hey joe))
     sleep 0.1
-    # rec'd thanks for your message 127.0.0.1, I received: hey, joe
+    # rec'd received: hey, joe
 
 ## REQUIREMENTS
 
