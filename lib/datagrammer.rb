@@ -45,13 +45,12 @@ class Datagrammer
   # so-called "path" of the message. Data like (({['/foo/bar', 'baz', 'bee']})) would
   # use "/foo/bar" as the path to match against.
   #
-  # Rules are evaluated in this order:
-  # * If a rule key is a string and it matches the path exactly, that rule will be used.
-  # * If no string rule keys match, any rule keys that are regexes will be run against the 
-  #   path and ALL regexes that match will be called. The match(es) from the regex will be
-  #   prepended to the argument list passed to the proc.
-  # * If there is no match yet and a rule key called '\default' exists, that rule will be used.
-  # * If no match has been made at this point, nothing will happen, the data will be ignored.
+  # Rules are evaluated as follows:
+  # * If a rule key is a string and matches the path exactly, the rule will be used.
+  # * If a rule key is a regex and there are matches against the path, the rule will be used.
+  #   Matches from the regex are prepended to the argument list passed to the process.
+  # * If no string or regex rules match and there is a rule called :default, that rule will be used
+  # * If there is no :default rule and no matches are made, nothing will happen
   def register_rule(rule, block)
     @string_rules[rule] = block if rule.kind_of?(String)
     @regex_rules[rule]  = block if rule.kind_of?(Regexp)
@@ -69,7 +68,7 @@ class Datagrammer
     end
     list.delete_if {|callback, args| callback.nil? }
     list << [@default_rule, arguments] if list.empty? && @default_rule
-    list.map {|callback, args| callback.call(args) }
+    list.each {|callback, args| callback.call(args) }
   end
   
   
@@ -86,7 +85,6 @@ class Datagrammer
         data, info = @socket.recvfrom(65535)
         data = Packet.decode(data)
         handle(data.shift, data)
-        # block.call(self, Packet.decode(data), info.last)
       end
     end
   end

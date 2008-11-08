@@ -43,7 +43,8 @@ describe Datagrammer do
     end
     
     it "calls the handler for a given address" do
-      @serv.handle('foo', %w(bar baz)).should == ["foo: bar, baz"]
+      @serv.handle('foo', %w(bar baz))
+      @bar.should == "foo: bar, baz"
     end
 
     describe "with regex handlers" do
