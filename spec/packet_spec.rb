@@ -26,11 +26,22 @@ describe Datagrammer::Packet do
       encoded = "tick\n\000\000\000,ii\000\000\000\000\n\000\000\334\n"
       Datagrammer::Packet.decode(encoded).should == ["tick\n", 10, 56330]
     end
+    
+    it "handles encoded booleans correctly" do
+      encoded = "boolean\000,TF\000"
+      Datagrammer::Packet.decode(encoded).should == ["boolean", true, false]
+    end
+    
+    it "handles encoded nils correctly" do
+      encoded = "nil\000,N\000\000"
+      Datagrammer::Packet.decode(encoded).should == ["nil", nil]
+    end
   end
   
   describe "encode" do
     [ [['hello'], "hello\000\000\000,\000\000\000"],
       [['hello','world'], "hello\000\000\000,s\000\000world\000\000\000"],
+      [['hello', true, false, nil], "hello\000\000\000,TFN\000\000\000\000"],
       [['hello', 'world', 1, 2.0], "hello\000\000\000,sif\000\000\000\000world\000\000\000\000\000\000\001@\000\000\000"]
     ].each do |message, expected|
       describe "message: #{message.join(', ')}" do

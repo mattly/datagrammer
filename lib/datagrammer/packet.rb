@@ -16,6 +16,20 @@ class Datagrammer
         when 's'; scanner.scan_string
         when 'i'; scanner.scan_integer
         when 'f'; scanner.scan_float
+        when 'T'; true
+        when 'F'; false
+        when 'N'; nil
+          # not supported yet:
+        # when 'b'; # blob
+        # when 'S'; # symbol
+        # when 't'; # OSC timetag
+        # when 'h'; # 64-bit integer
+        # when 'd'; # 64-bit "double" float
+        # when 'r'; # 32-bit RGBA color
+        # when 'm'; # four-byte midi message
+        # when 'I'; # infinity
+        # when '['; # beginning of array
+        # when ']'; # end of array
         end
       end
       arguments.unshift(message)
@@ -46,6 +60,9 @@ class Datagrammer
         when String; 's' 
         when Integer; 'i'
         when Float; 'f'
+        when TrueClass; 'T'
+        when FalseClass; 'F'
+        when NilClass; 'N'
         end
       end.join
       pad(str)
@@ -57,6 +74,7 @@ class Datagrammer
         when String; pad(argument)
         when Integer; [argument].pack('N')
         when Float; [argument].pack('g')
+        when TrueClass, FalseClass, NilClass; # no arguments
         end
       end.join
     end
