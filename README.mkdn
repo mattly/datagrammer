@@ -21,14 +21,12 @@ encoding/decoding stuff, as well as providing a non-blocking listening thread.
     require 'datagrammer'
     
     server = Datagrammer.new(5000)
-    server.listen do |serv, msg, sender| 
-      serv.speak("thanks for your message #{sender}, I received: #{msg.join(', ')}")
-    end
+    server.register_rule /.*/, lambda {|msg| serv.speak("received: #{msg.join(',')}") }
     
     # set to speak at server's default speak destination
-    client = Datagrammer.new(5001, :speak_port => 5000) 
-    client.listen {|serv, msg| puts "rec'd #{msg}"}
-    
+    client = Datagrammer.new(5001, :speak_port => 5000)
+    client.register_rule 'received:', lambda {|msg| puts "rec'd #{msg}.join(' ')" }
+
     client.speak(%w(hey joe))
     sleep 0.1
     # rec'd thanks for your message 127.0.0.1, I received: hey, joe
