@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{datagrammer}
-  s.version = "0.3.1"
+  s.version = "0.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Matthew Lyon"]
-  s.date = %q{2008-11-06}
+  s.date = %q{2008-11-07}
   s.description = %q{Sends and receives UDP packets in an OSC-compatable encoded format.}
   s.email = %q{matt@flowerpowered.com}
   s.extra_rdoc_files = ["README.mkdn"]
